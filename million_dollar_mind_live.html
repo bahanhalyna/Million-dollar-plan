@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>$1,000,000 — What Would You Do?</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--gold:#c9a84c;--gold2:#f0d080;--dark:#0a0a0a;--surface:#161616;--surface2:#1e1e1e;--text:#f0ece0;--muted:#888;--green:#4caf7d;--red:#e05252;}
+body{background:var(--dark);color:var(--text);font-family:'DM Mono',monospace;min-height:100vh;overflow-x:hidden}
+h1,h2,h3{font-family:'Playfair Display',serif}
+.screen{display:none;min-height:100vh;padding:2rem}
+.screen.active{display:flex;flex-direction:column;align-items:center;justify-content:center}
+.card-wrap{perspective:1000px;margin:2rem 0}
+.amex-card{width:380px;height:240px;border-radius:16px;position:relative;background:linear-gradient(135deg,#1a1a1a 0%,#2a2a2a 40%,#1a1a1a 100%);border:1px solid #333;transform-style:preserve-3d;animation:cardFloat 4s ease-in-out infinite,cardReveal 1.2s cubic-bezier(.16,1,.3,1) forwards;box-shadow:0 30px 80px rgba(0,0,0,.8),0 0 0 1px rgba(201,168,76,.15);}
+@keyframes cardFloat{0%,100%{transform:translateY(0) rotateX(2deg) rotateY(-2deg)}50%{transform:translateY(-12px) rotateX(-2deg) rotateY(2deg)}}
+@keyframes cardReveal{from{opacity:0;transform:translateY(40px) rotateX(20deg)}to{opacity:1}}
+.card-stripe{position:absolute;top:0;left:0;right:0;height:4px;border-radius:16px 16px 0 0;background:linear-gradient(90deg,var(--gold),var(--gold2),var(--gold));}
+.card-chip{position:absolute;top:48px;left:32px;width:44px;height:34px;border-radius:6px;background:linear-gradient(135deg,#b8922a,#f0d080,#b8922a);border:1px solid rgba(255,255,255,.1);}
+.card-chip::after{content:'';position:absolute;top:50%;left:0;right:0;height:1px;background:rgba(0,0,0,.3)}
+.card-chip::before{content:'';position:absolute;left:50%;top:0;bottom:0;width:1px;background:rgba(0,0,0,.3)}
+.card-number{position:absolute;bottom:72px;left:32px;right:32px;font-size:15px;letter-spacing:3px;color:rgba(240,208,128,.7);font-family:'DM Mono',monospace;}
+.card-name{position:absolute;bottom:36px;left:32px;font-size:13px;letter-spacing:2px;color:var(--text);text-transform:uppercase}
+.card-valid{position:absolute;bottom:36px;right:80px;font-size:11px;color:var(--muted);text-align:right}
+.card-logo{position:absolute;top:40px;right:28px;font-family:'Playfair Display',serif;font-size:11px;letter-spacing:2px;color:var(--gold);text-align:center;line-height:1.4;}
+.card-centurion{position:absolute;bottom:20px;right:28px;width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold2));display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;color:#000;}
+.balance-display{text-align:center;margin:1rem 0}
+.balance-label{font-size:11px;letter-spacing:3px;color:var(--muted);text-transform:uppercase;margin-bottom:8px}
+.balance-amount{font-family:'Playfair Display',serif;font-size:52px;font-weight:700;color:var(--gold);animation:countUp 1.5s ease-out forwards;}
+@keyframes countUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.btn{background:transparent;border:1px solid var(--gold);color:var(--gold);padding:14px 48px;font-family:'DM Mono',monospace;font-size:13px;letter-spacing:3px;text-transform:uppercase;cursor:pointer;border-radius:2px;transition:all .3s;margin:.5rem;}
+.btn:hover{background:var(--gold);color:#000}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn-ghost{border-color:#333;color:var(--muted)}
+.btn-ghost:hover{border-color:var(--gold);color:var(--gold);background:transparent}
+.name-input{background:transparent;border:none;border-bottom:1px solid var(--gold);color:var(--text);font-family:'Playfair Display',serif;font-size:28px;text-align:center;padding:8px 16px;width:320px;outline:none;letter-spacing:2px;}
+.name-input::placeholder{color:#444}
+.round-header{text-align:center;margin-bottom:2rem}
+.round-number{font-size:11px;letter-spacing:4px;color:var(--muted);text-transform:uppercase;margin-bottom:8px}
+.round-prompt{font-family:'Playfair Display',serif;font-size:24px;max-width:560px;text-align:center;line-height:1.4;margin-bottom:.5rem}
+.round-amount{font-size:13px;color:var(--gold);letter-spacing:2px}
+.balance-bar{width:100%;max-width:560px;height:3px;background:#222;border-radius:2px;margin:1.5rem 0;}
+.balance-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold2));border-radius:2px;transition:width 1s ease}
+.categories{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:560px;width:100%;margin:1rem 0}
+.cat-btn{background:var(--surface);border:1px solid #2a2a2a;color:var(--text);padding:14px 10px;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;cursor:pointer;border-radius:4px;transition:all .25s;text-align:center;}
+.cat-btn:hover,.cat-btn.selected{background:rgba(201,168,76,.1);border-color:var(--gold);color:var(--gold)}
+.write-in{width:100%;max-width:560px;background:var(--surface);border:1px solid #2a2a2a;color:var(--text);font-family:'DM Mono',monospace;font-size:13px;padding:12px 16px;border-radius:4px;outline:none;margin-top:8px;transition:border-color .25s;}
+.write-in:focus{border-color:var(--gold)}
+.write-in::placeholder{color:#444}
+.spinner{width:40px;height:40px;border:2px solid #222;border-top-color:var(--gold);border-radius:50%;animation:spin 1s linear infinite;margin:2rem auto;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.waiting-name{font-family:'Playfair Display',serif;font-size:20px;color:var(--gold);margin:.5rem 0}
+.progress-text{font-size:12px;color:var(--muted);letter-spacing:2px}
+#screen-dashboard{background:var(--dark);justify-content:flex-start;padding-top:2rem}
+.dash-header{display:flex;align-items:center;justify-content:space-between;width:100%;max-width:900px;padding:1rem 0;border-bottom:1px solid #222;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;}
+.dash-title{font-family:'Playfair Display',serif;font-size:22px;color:var(--gold)}
+.round-tabs{display:flex;gap:8px;flex-wrap:wrap}
+.rtab{background:transparent;border:1px solid #2a2a2a;color:var(--muted);padding:8px 16px;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:2px;cursor:pointer;border-radius:2px;transition:all .25s;}
+.rtab.active{border-color:var(--gold);color:var(--gold)}
+.responses-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;width:100%;max-width:900px}
+.response-card{background:var(--surface);border:1px solid #222;border-radius:6px;padding:1rem;animation:fadeIn .4s ease forwards;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.resp-name{font-family:'Playfair Display',serif;font-size:14px;color:var(--gold);margin-bottom:6px}
+.resp-choice{font-size:12px;color:var(--text);letter-spacing:1px}
+.tally-section{width:100%;max-width:900px;margin-top:2rem;margin-bottom:3rem}
+.tally-title{font-size:11px;letter-spacing:3px;color:var(--muted);text-transform:uppercase;margin-bottom:1rem}
+.tally-row{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.tally-label{font-size:12px;color:var(--text);width:150px;flex-shrink:0;letter-spacing:1px}
+.tally-bar-wrap{flex:1;height:8px;background:#1a1a1a;border-radius:4px}
+.tally-bar{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold2));border-radius:4px;transition:width .8s ease;min-width:2px}
+.tally-pct{font-size:13px;color:var(--gold);width:44px;text-align:right;letter-spacing:1px;font-weight:bold}
+.tally-count{font-size:11px;color:var(--muted);width:20px;text-align:right}
+.status-dot{width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block;margin-right:8px;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+#screen-admin{align-items:flex-start;padding:2rem;justify-content:flex-start}
+.admin-wrap{width:100%;max-width:720px;margin:0 auto}
+.admin-title{font-family:'Playfair Display',serif;font-size:28px;color:var(--gold);margin-bottom:2rem}
+.admin-section{background:var(--surface);border:1px solid #222;border-radius:8px;padding:1.5rem;margin-bottom:1.5rem}
+.admin-section h3{font-size:12px;letter-spacing:3px;color:var(--muted);text-transform:uppercase;margin-bottom:1rem}
+.admin-row{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+.admin-input{flex:1;background:var(--surface2);border:1px solid #2a2a2a;color:var(--text);font-family:'DM Mono',monospace;font-size:13px;padding:10px 12px;border-radius:4px;outline:none;}
+.admin-input:focus{border-color:var(--gold)}
+.del-btn{background:transparent;border:1px solid #333;color:#666;width:32px;height:32px;border-radius:4px;cursor:pointer;font-size:16px;transition:all .2s;flex-shrink:0}
+.del-btn:hover{border-color:var(--red);color:var(--red)}
+.add-btn{background:transparent;border:1px solid #333;color:var(--muted);padding:8px 16px;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:2px;cursor:pointer;border-radius:4px;transition:all .2s;margin-top:4px}
+.add-btn:hover{border-color:var(--gold);color:var(--gold)}
+.admin-actions{display:flex;gap:8px;margin-top:1rem;align-items:center}
+.save-badge{font-size:11px;color:var(--green);letter-spacing:2px;opacity:0;transition:opacity .3s}
+.hero-title{font-family:'Playfair Display',serif;font-size:64px;font-weight:900;color:var(--gold);text-align:center;line-height:1;margin-bottom:.5rem}
+.hero-sub{font-size:11px;letter-spacing:4px;color:var(--muted);text-transform:uppercase;text-align:center;margin-bottom:3rem}
+.mode-btns{display:flex;gap:1rem;flex-wrap:wrap;justify-content:center}
+.done-icon{font-size:64px;color:var(--gold);margin-bottom:1rem}
+.done-title{font-family:'Playfair Display',serif;font-size:36px;color:var(--gold);margin-bottom:.5rem}
+.spent-list{width:100%;max-width:400px;margin-top:1.5rem}
+.spent-row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #1a1a1a;font-size:12px}
+.spent-cat{color:var(--text);letter-spacing:1px}
+.spent-amt{color:var(--gold)}
+.toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);background:#1a1a1a;border:1px solid var(--gold);color:var(--gold);padding:12px 28px;border-radius:4px;font-size:12px;letter-spacing:1px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+
+<div class="toast" id="toast"></div>
+
+<!-- TITLE -->
+<div id="screen-title" class="screen active">
+  <div class="hero-title">$1,000,000</div>
+  <div class="hero-sub">What would you do with it?</div>
+  <div class="mode-btns">
+    <button class="btn" onclick="showScreen('screen-enter')">Start</button>
+    <button class="btn btn-ghost" onclick="showScreen('screen-admin')">Admin</button>
+    <button class="btn btn-ghost" onclick="showScreen('screen-dashboard')">Dashboard</button>
+  </div>
+</div>
+
+<!-- ENTER NAME -->
+<div id="screen-enter" class="screen">
+  <div style="text-align:center;margin-bottom:2rem">
+    <div style="font-size:11px;letter-spacing:4px;color:var(--muted);text-transform:uppercase;margin-bottom:12px">Your Black Card Awaits</div>
+    <input class="name-input" id="student-name" placeholder="Enter your name" maxlength="24" autocomplete="off"
+      onkeydown="if(event.key==='Enter')startJourney()">
+  </div>
+  <button class="btn" onclick="startJourney()">Claim My Card</button>
+  <button class="btn btn-ghost" onclick="showScreen('screen-title')">Back</button>
+</div>
+
+<!-- CARD REVEAL -->
+<div id="screen-card" class="screen">
+  <div style="font-size:11px;letter-spacing:4px;color:var(--muted);text-transform:uppercase;margin-bottom:1rem">Congratulations</div>
+  <div class="card-wrap">
+    <div class="amex-card">
+      <div class="card-stripe"></div>
+      <div class="card-chip"></div>
+      <div class="card-logo">AMERICAN<br>EXPRESS</div>
+      <div class="card-centurion">✦</div>
+      <div class="card-number" id="card-number">•••• •••• •••• 0000</div>
+      <div class="card-name" id="card-name">YOUR NAME</div>
+      <div class="card-valid">VALID<br>THRU 12/99</div>
+    </div>
+  </div>
+  <div class="balance-display">
+    <div class="balance-label">Available Balance</div>
+    <div class="balance-amount">$1,000,000</div>
+  </div>
+  <button class="btn" onclick="startRounds()" style="margin-top:1rem">Begin Spending</button>
+</div>
+
+<!-- ROUND -->
+<div id="screen-round" class="screen">
+  <div class="round-header">
+    <div class="round-number" id="round-label">Round 1 of 5</div>
+    <div class="round-prompt" id="round-prompt">Loading...</div>
+    <div class="round-amount">$200,000 to spend</div>
+  </div>
+  <div class="balance-bar"><div class="balance-fill" id="balance-fill" style="width:100%"></div></div>
+  <div style="font-size:11px;color:var(--muted);letter-spacing:2px;margin-bottom:1rem" id="balance-remaining">Balance: $1,000,000</div>
+  <div class="categories" id="categories-grid"></div>
+  <input class="write-in" id="write-in" placeholder="Or write your own choice..." maxlength="60">
+  <div style="margin-top:1.5rem">
+    <button class="btn" id="confirm-btn" onclick="submitRound()">Confirm →</button>
+  </div>
+</div>
+
+<!-- WAITING -->
+<div id="screen-waiting" class="screen">
+  <div class="spinner"></div>
+  <div class="waiting-name" id="waiting-name">Great choice.</div>
+  <div class="progress-text" id="waiting-progress">Round 2 coming up...</div>
+  <button class="btn" style="margin-top:2rem" onclick="nextRound()">Next Round →</button>
+</div>
+
+<!-- DONE -->
+<div id="screen-done" class="screen">
+  <div class="done-icon">✦</div>
+  <div class="done-title">You've spent it all.</div>
+  <div style="font-size:13px;color:var(--muted);letter-spacing:2px;margin-bottom:1rem">Here's where your million went:</div>
+  <div class="spent-list" id="spent-list"></div>
+  <div style="margin-top:2rem;font-size:12px;color:var(--muted);text-align:center;max-width:380px;line-height:1.8">
+    Does how you spent it say something about your values — or just what you were told to value?
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="screen-dashboard" class="screen">
+  <div class="dash-header">
+    <div>
+      <div class="dash-title">Class Dashboard</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:4px">
+        <span class="status-dot"></span><span id="response-count">Loading...</span>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <div class="round-tabs" id="round-tabs"></div>
+      <button class="btn btn-ghost" style="padding:8px 16px;font-size:11px" onclick="clearAll()">Clear All</button>
+      <button class="btn btn-ghost" style="padding:8px 16px;font-size:11px" onclick="showScreen('screen-title')">← Back</button>
+    </div>
+  </div>
+  <div class="responses-grid" id="responses-grid"></div>
+  <div class="tally-section">
+    <div class="tally-title">Category Breakdown</div>
+    <div id="tally-bars"></div>
+  </div>
+</div>
+
+<!-- ADMIN -->
+<div id="screen-admin" class="screen">
+  <div class="admin-wrap">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem">
+      <div class="admin-title">Admin Panel</div>
+      <button class="btn btn-ghost" style="padding:8px 20px;font-size:11px" onclick="showScreen('screen-title')">← Back</button>
+    </div>
+    <div class="admin-section">
+      <h3>Round Prompts</h3>
+      <div id="prompts-editor"></div>
+    </div>
+    <div class="admin-section">
+      <h3>Spending Categories</h3>
+      <div id="cats-editor"></div>
+      <button class="add-btn" onclick="addCat()">+ Add Category</button>
+    </div>
+    <div class="admin-actions">
+      <button class="btn" onclick="saveAdmin()">Save Changes</button>
+      <span class="save-badge" id="save-badge">✓ Saved</span>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── SUPABASE ────────────────────────────────────────────────────────
+const SB_URL = 'https://pqcleeiadjnfluhrnasw.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBxY2xlZWlhZGpuZmx1aHJuYXN3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzNzQxMTEsImV4cCI6MjA5NDk1MDExMX0.PFzkgWN_MNShbnIEoXNuufyXfOpYbzCFGnNT7CnEPRY';
+
+const sbHeaders = {
+  'apikey': SB_KEY,
+  'Authorization': 'Bearer ' + SB_KEY,
+  'Content-Type': 'application/json'
+};
+
+async function sbGet() {
+  const res = await fetch(SB_URL + '/rest/v1/responses?select=*&order=created_at.asc', { headers: sbHeaders });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+async function sbUpsert(studentName, roundIndex, choice) {
+  const res = await fetch(SB_URL + '/rest/v1/responses?on_conflict=student_name,round_index', {
+    method: 'POST',
+    headers: { ...sbHeaders, 'Prefer': 'resolution=merge-duplicates' },
+    body: JSON.stringify({ student_name: studentName, round_index: roundIndex, choice })
+  });
+  if (!res.ok) throw new Error(await res.text());
+}
+
+async function sbClear() {
+  const res = await fetch(SB_URL + '/rest/v1/responses?id=neq.00000000-0000-0000-0000-000000000000', {
+    method: 'DELETE', headers: sbHeaders
+  });
+  if (!res.ok) throw new Error(await res.text());
+}
+
+// ── CONFIG ──────────────────────────────────────────────────────────
+let config = {
+  rounds: [
+    "You just got $1,000,000. The first $200,000 must go toward someone else. Who gets it?",
+    "Round 2: Invest $200,000 into something that reflects your values. What do you choose?",
+    "Round 3: Spend $200,000 on experiences or education. What matters most to you?",
+    "Round 4: $200,000 left for your community or a cause. Where does it go?",
+    "Final Round: The last $200,000 is yours to spend however you want. What do you do?"
+  ],
+  categories: [
+    "Donate to Charity","Start a Business","Buy Real Estate",
+    "Pay Off Debt","Fund Education","Help My Family",
+    "Travel the World","Invest in Stocks","Buy Luxury Items","Save It"
+  ]
+};
+try { const s = JSON.parse(localStorage.getItem('mmm_config')||'null'); if(s) config = {...config,...s}; } catch(e){}
+
+let state = { name:'', balance:1000000, currentRound:0, selections:[], selectedCat:null };
+let activeRoundTab = 0, dashInterval = null;
+
+// ── HELPERS ─────────────────────────────────────────────────────────
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function toast(msg, dur=3500){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), dur); }
+
+// ── NAV ─────────────────────────────────────────────────────────────
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if (id==='screen-dashboard') { renderDashboard(); startDashPoll(); }
+  else stopDashPoll();
+  if (id==='screen-admin') renderAdmin();
+  if (id==='screen-enter') setTimeout(()=>document.getElementById('student-name').focus(),100);
+}
+
+// ── STUDENT FLOW ─────────────────────────────────────────────────────
+function startJourney() {
+  const n = document.getElementById('student-name').value.trim();
+  if (!n) { document.getElementById('student-name').focus(); return; }
+  state = { name:n, balance:1000000, currentRound:0, selections:[], selectedCat:null };
+  document.getElementById('card-name').textContent = n.toUpperCase();
+  document.getElementById('card-number').textContent = '•••• •••• •••• ' + Math.floor(1000+Math.random()*9000);
+  showScreen('screen-card');
+}
+
+function startRounds() { showRound(0); }
+
+function showRound(idx) {
+  state.currentRound = idx; state.selectedCat = null;
+  document.getElementById('round-label').textContent = `Round ${idx+1} of ${config.rounds.length}`;
+  document.getElementById('round-prompt').textContent = config.rounds[idx] || `Round ${idx+1}: How do you spend $200,000?`;
+  document.getElementById('balance-remaining').textContent = `Balance: $${state.balance.toLocaleString()}`;
+  document.getElementById('balance-fill').style.width = (state.balance/1000000*100)+'%';
+  document.getElementById('write-in').value = '';
+  document.getElementById('confirm-btn').textContent = 'Confirm →';
+  document.getElementById('confirm-btn').disabled = false;
+  const grid = document.getElementById('categories-grid');
+  grid.innerHTML = '';
+  config.categories.forEach(cat => {
+    const b = document.createElement('button');
+    b.className = 'cat-btn'; b.textContent = cat;
+    b.onclick = () => {
+      document.querySelectorAll('.cat-btn').forEach(x=>x.classList.remove('selected'));
+      b.classList.add('selected'); state.selectedCat = cat;
+      document.getElementById('write-in').value = '';
+    };
+    grid.appendChild(b);
+  });
+  showScreen('screen-round');
+}
+
+async function submitRound() {
+  const writeIn = document.getElementById('write-in').value.trim();
+  const choice = writeIn || state.selectedCat;
+  if (!choice) { toast('Pick a category or write your own!'); return; }
+  const btn = document.getElementById('confirm-btn');
+  btn.textContent = 'Saving...'; btn.disabled = true;
+  try {
+    await sbUpsert(state.name, state.currentRound, choice);
+  } catch(e) {
+    toast('Could not save — check your connection.');
+    btn.textContent = 'Confirm →'; btn.disabled = false;
+    return;
+  }
+  state.selections.push({ round:state.currentRound, choice });
+  state.balance -= 200000;
+  if (state.currentRound >= config.rounds.length-1) {
+    showDone();
+  } else {
+    document.getElementById('waiting-name').textContent = `"${choice}" — noted.`;
+    document.getElementById('waiting-progress').textContent = `Round ${state.currentRound+2} coming up...`;
+    showScreen('screen-waiting');
+  }
+}
+
+function nextRound() { showRound(state.currentRound+1); }
+
+function showDone() {
+  document.getElementById('spent-list').innerHTML = state.selections.map((s,i)=>
+    `<div class="spent-row"><span class="spent-cat">Round ${i+1}: ${esc(s.choice)}</span><span class="spent-amt">$200,000</span></div>`
+  ).join('');
+  showScreen('screen-done');
+}
+
+// ── DASHBOARD ────────────────────────────────────────────────────────
+async function renderDashboard() {
+  let rows = [];
+  try { rows = await sbGet(); } catch(e) { return; }
+
+  // group rows by student
+  const map = {};
+  rows.forEach(r => {
+    if (!map[r.student_name]) map[r.student_name] = { name:r.student_name, rounds:[] };
+    map[r.student_name].rounds[r.round_index] = r.choice;
+  });
+  const students = Object.values(map);
+
+  document.getElementById('response-count').textContent = students.length + ' response' + (students.length!==1?'s':'');
+
+  // round tabs
+  document.getElementById('round-tabs').innerHTML = config.rounds.map((_,i)=>
+    `<button class="rtab ${i===activeRoundTab?'active':''}" onclick="setRoundTab(${i})">Round ${i+1}</button>`
+  ).join('');
+
+  // student cards
+  const grid = document.getElementById('responses-grid');
+  grid.innerHTML = '';
+  students.forEach(s => {
+    const choice = s.rounds[activeRoundTab];
+    if (!choice) return;
+    const card = document.createElement('div');
+    card.className = 'response-card';
+    card.innerHTML = `<div class="resp-name">${esc(s.name)}</div><div class="resp-choice">${esc(choice)}</div>`;
+    grid.appendChild(card);
+  });
+
+  // tally + percentages
+  const tally = {};
+  let total = 0;
+  students.forEach(s => {
+    const c = s.rounds[activeRoundTab];
+    if (c) { tally[c]=(tally[c]||0)+1; total++; }
+  });
+  const max = Math.max(...Object.values(tally), 1);
+  document.getElementById('tally-bars').innerHTML = Object.entries(tally)
+    .sort((a,b)=>b[1]-a[1])
+    .map(([cat,cnt]) => {
+      const pct = total>0 ? Math.round(cnt/total*100) : 0;
+      return `<div class="tally-row">
+        <div class="tally-label">${esc(cat)}</div>
+        <div class="tally-bar-wrap"><div class="tally-bar" style="width:${cnt/max*100}%"></div></div>
+        <div class="tally-count">${cnt}</div>
+        <div class="tally-pct">${pct}%</div>
+      </div>`;
+    }).join('');
+}
+
+function setRoundTab(i) { activeRoundTab=i; renderDashboard(); }
+function startDashPoll() { dashInterval=setInterval(renderDashboard,3000); }
+function stopDashPoll() { clearInterval(dashInterval); }
+
+async function clearAll() {
+  if (!confirm('Clear ALL responses from the database? This cannot be undone.')) return;
+  try { await sbClear(); toast('All responses cleared.'); renderDashboard(); }
+  catch(e) { toast('Error clearing responses.'); }
+}
+
+// ── ADMIN ────────────────────────────────────────────────────────────
+function renderAdmin() {
+  document.getElementById('prompts-editor').innerHTML = config.rounds.map((r,i)=>
+    `<div class="admin-row"><input class="admin-input" data-prompt="${i}" value="${esc(r)}" placeholder="Round ${i+1} prompt"></div>`
+  ).join('');
+  renderCatsEditor();
+}
+function renderCatsEditor() {
+  document.getElementById('cats-editor').innerHTML = config.categories.map((c,i)=>
+    `<div class="admin-row">
+      <input class="admin-input" data-cat="${i}" value="${esc(c)}" placeholder="Category name">
+      <button class="del-btn" onclick="deleteCat(${i})">×</button>
+    </div>`
+  ).join('');
+}
+function addCat() { config.categories.push('New Category'); renderCatsEditor(); }
+function deleteCat(i) { config.categories.splice(i,1); renderCatsEditor(); }
+function saveAdmin() {
+  document.querySelectorAll('[data-prompt]').forEach(el=>{ config.rounds[+el.dataset.prompt]=el.value; });
+  const cats=[];
+  document.querySelectorAll('[data-cat]').forEach(el=>{ cats.push(el.value); });
+  config.categories=cats;
+  localStorage.setItem('mmm_config',JSON.stringify(config));
+  const b=document.getElementById('save-badge');
+  b.style.opacity='1'; setTimeout(()=>b.style.opacity='0',2000);
+}
+</script>
+</body>
+</html>
